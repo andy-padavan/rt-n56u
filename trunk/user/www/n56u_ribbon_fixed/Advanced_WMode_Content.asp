@@ -193,13 +193,80 @@ function rescan(){
 	wds_scan();
 }
 
+function hexStr2Bytes(hexString) {
+    var pos = 0;
+    if (hexString.length % 2 != 0) {
+        return null;
+    }
+    var hexA = new Array();
+    for (var i = 0; i < hexString.length; i += 2) {
+        hexA.push("0x" + hexString.substr(i, 2));
+    }
+    return hexA;
+}
+
+function utf8Byte2UnicodeStr(utf8Bytes) {
+    var unicodeStr = "";
+    for (var pos = 0; pos < utf8Bytes.length;) {
+        var flag = utf8Bytes[pos];
+        var unicode = 0;
+        if ((flag >>> 7) === 0) {
+            unicodeStr += String.fromCharCode(utf8Bytes[pos]);
+            pos += 1;
+        } else if ((flag & 0xFC) === 0xFC) {
+            unicode = (utf8Bytes[pos] & 0x3) << 30;
+            unicode |= (utf8Bytes[pos + 1] & 0x3F) << 24;
+            unicode |= (utf8Bytes[pos + 2] & 0x3F) << 18;
+            unicode |= (utf8Bytes[pos + 3] & 0x3F) << 12;
+            unicode |= (utf8Bytes[pos + 4] & 0x3F) << 6;
+            unicode |= (utf8Bytes[pos + 5] & 0x3F);
+            unicodeStr += String.fromCharCode(unicode);
+            pos += 6;
+        } else if ((flag & 0xF8) === 0xF8) {
+            unicode = (utf8Bytes[pos] & 0x7) << 24;
+            unicode |= (utf8Bytes[pos + 1] & 0x3F) << 18;
+            unicode |= (utf8Bytes[pos + 2] & 0x3F) << 12;
+            unicode |= (utf8Bytes[pos + 3] & 0x3F) << 6;
+            unicode |= (utf8Bytes[pos + 4] & 0x3F);
+            unicodeStr += String.fromCharCode(unicode);
+            pos += 5;
+        } else if ((flag & 0xF0) === 0xF0) {
+            unicode = (utf8Bytes[pos] & 0xF) << 18;
+            unicode |= (utf8Bytes[pos + 1] & 0x3F) << 12;
+            unicode |= (utf8Bytes[pos + 2] & 0x3F) << 6;
+            unicode |= (utf8Bytes[pos + 3] & 0x3F);
+            unicodeStr += String.fromCharCode(unicode);
+            pos += 4;
+        } else if ((flag & 0xE0) === 0xE0) {
+            unicode = (utf8Bytes[pos] & 0x1F) << 12;;
+            unicode |= (utf8Bytes[pos + 1] & 0x3F) << 6;
+            unicode |= (utf8Bytes[pos + 2] & 0x3F);
+            unicodeStr += String.fromCharCode(unicode);
+            pos += 3;
+        } else if ((flag & 0xC0) === 0xC0) { //110
+            unicode = (utf8Bytes[pos] & 0x3F) << 6;
+            unicode |= (utf8Bytes[pos + 1] & 0x3F);
+            unicodeStr += String.fromCharCode(unicode);
+            pos += 2;
+        } else {
+            unicodeStr += String.fromCharCode(utf8Bytes[pos]);
+            pos += 1;
+        }
+    }
+    return unicodeStr;
+}
 function showLANIPList(){
 	var code = "";
 	var show_name = "";
-
 	if(wds_aplist != ""){
 		for(var i = 0; i < wds_aplist.length ; i++){
 			wds_aplist[i][0] = decodeURIComponent(wds_aplist[i][0]);
+			if (wds_aplist[i][0].substring(0, 2) == "0x") {
+		        hexBytes = hexStr2Bytes(wds_aplist[i][0])
+		        if (hexBytes != null) {
+		            wds_aplist[i][0] = utf8Byte2UnicodeStr(hexBytes)
+		        }
+		    }
 			if(wds_aplist[i][0] && wds_aplist[i][0].length > 16)
 				show_name = wds_aplist[i][0].substring(0, 14) + "..";
 			else
@@ -218,7 +285,6 @@ function showLANIPList(){
 	else{
 		code += '<div style="width: 207px"><center><img style="padding-top: 4px; display: block;" src="/bootstrap/img/ajax-loader.gif"></center></div>';
 	}
-
 	code +='<!--[if lte IE 6.5]><iframe class="hackiframe_wdssurvey"></iframe><![endif]-->';
 	document.getElementById("WDSAPList").innerHTML = code;
 }
