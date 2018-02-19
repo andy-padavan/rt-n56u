@@ -74,6 +74,13 @@ ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_FR),y)
 	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/FR.dict
 	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/FR.dict
 endif
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_KR),y)
+	echo "LANG_KR=한국어" >> $(ROMFS_DIR)/www/EN.header
+	cp dict/KR.dict $(ROMFS_DIR)/www
+	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/KR.dict
+	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/KR.dict
+	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/KR.dict
+endif
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_NO),y)
 	echo "LANG_NO=Norsk" >> $(ROMFS_DIR)/www/EN.header
 	cp dict/NO.dict $(ROMFS_DIR)/www

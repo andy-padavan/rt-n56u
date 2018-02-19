@@ -170,6 +170,8 @@ const struct language_table language_tables[] = {
 	{"pt-BR", "BR"},
 	{"ja", "JP"},
 	{"ja-JP", "JP"},
+	{"ko", "KR"},
+	{"ko-KR", "KR"},
 	{NULL, NULL}
 };
 
